@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N8N AI Document Processing Workflow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #E6E6FA 0%, #DDA0DD 50%, #D8BFD8 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #fff, #f0f8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .workflow {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .node {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            min-width: 180px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .node-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .node-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .node-subtitle {
+            font-size: 0.9em;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .arrow {
+            font-size: 2em;
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .trigger-node {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+            border-color: #FF4757;
+        }
+
+        .action-node {
+            background: linear-gradient(135deg, #4ECDC4, #45B7B8);
+            border-color: #26C0BA;
+        }
+
+        .ai-node {
+            background: linear-gradient(135deg, #FFA726, #FF9800);
+            border-color: #F57C00;
+        }
+
+        .storage-node {
+            background: linear-gradient(135deg, #66BB6A, #4CAF50);
+            border-color: #388E3C;
+        }
+
+        .process-node {
+            background: linear-gradient(135deg, #AB47BC, #9C27B0);
+            border-color: #7B1FA2;
+        }
+
+        .branch-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .branch-split {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .branch-node {
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .memory-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .memory-node {
+            background: linear-gradient(135deg, #5C6BC0, #3F51B5);
+            border-color: #303F9F;
+            flex: 1;
+        }
+
+        .integration-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #FF4757;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .workflow-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .description {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .description h2 {
+            margin-bottom: 15px;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .description p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+            opacity: 0.95;
+        }
+
+        .integration-panel {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .integration-panel h2 {
+            margin-bottom: 20px;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .config-section {
+            margin-bottom: 20px;
+        }
+
+        .config-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .config-section input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+        }
+
+        .config-section input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .config-section input:focus {
+            outline: none;
+            border-color: #4ECDC4;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .test-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .test-btn, .trigger-btn, .send-btn, .upload-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .test-btn {
+            background: linear-gradient(135deg, #4ECDC4, #45B7B8);
+        }
+
+        .trigger-btn {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+        }
+
+        .send-btn, .upload-btn {
+            background: linear-gradient(135deg, #66BB6A, #4CAF50);
+        }
+
+        .test-btn:hover, .trigger-btn:hover, .send-btn:hover, .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-message, .upload-status {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            min-height: 20px;
+            font-weight: bold;
+        }
+
+        .status-success {
+            background: linear-gradient(135deg, #66BB6A, #4CAF50);
+            color: white;
+        }
+
+        .status-error {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+            color: white;
+        }
+
+        .status-info {
+            background: linear-gradient(135deg, #4ECDC4, #45B7B8);
+            color: white;
+        }
+
+        .chat-interface, .file-upload-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-interface h2, .file-upload-section h2 {
+            margin-bottom: 20px;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 400px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input-container input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+        }
+
+        .chat-input-container input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .chat-input-container input:focus {
+            outline: none;
+            border-color: #4ECDC4;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .upload-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .upload-container input[type="file"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #4ECDC4, #45B7B8);
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message.ai {
+            background: linear-gradient(135deg, #AB47BC, #9C27B0);
+            margin-right: auto;
+        }
+
+        .message.system {
+            background: linear-gradient(135deg, #FFA726, #FF9800);
+            margin: 0 auto;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .workflow-row {
+                flex-direction: column;
+            }
+            
+            .branch-split {
+                flex-direction: column;
+            }
+            
+            .memory-section {
+                flex-direction: column;
+            }
+            
+            .arrow {
+                transform: rotate(90deg);
+                margin: 10px 0;
+            }
+
+            .test-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .upload-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+    <script>
+        // N8N Integration JavaScript
+        class N8NIntegration {
+            constructor() {
+                this.webhookUrl = '';
+                this.apiKey = '';
+                this.init();
+            }
+
+            init() {
+                // Get DOM elements
+                this.webhookInput = document.getElementById('n8n-webhook-url');
+                this.apiKeyInput = document.getElementById('n8n-api-key');
+                this.testBtn = document.getElementById('test-connection');
+                this.triggerBtn = document.getElementById('trigger-workflow');
+                this.statusDiv = document.getElementById('status-message');
+                this.chatInput = document.getElementById('chat-input');
+                this.sendBtn = document.getElementById('send-message');
+                this.chatMessages = document.getElementById('chat-messages');
+                this.fileInput = document.getElementById('file-input');
+                this.uploadBtn = document.getElementById('upload-file');
+                this.uploadStatus = document.getElementById('upload-status');
+
+                // Bind events
+                this.testBtn.addEventListener('click', () => this.testConnection());
+                this.triggerBtn.addEventListener('click', () => this.triggerWorkflow());
+                this.sendBtn.addEventListener('click', () => this.sendMessage());
+                this.uploadBtn.addEventListener('click', () => this.uploadFile());
+                
+                this.chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendMessage();
+                });
+
+                // Load saved configuration
+                this.loadConfig();
+            }
+
+            loadConfig() {
+                const savedWebhook = localStorage.getItem('n8n-webhook-url');
+                const savedApiKey = localStorage.getItem('n8n-api-key');
+                
+                if (savedWebhook) {
+                    this.webhookInput.value = savedWebhook;
+                    this.webhookUrl = savedWebhook;
+                }
+                
+                if (savedApiKey) {
+                    this.apiKeyInput.value = savedApiKey;
+                    this.apiKey = savedApiKey;
+                }
+            }
+
+            saveConfig() {
+                this.webhookUrl = this.webhookInput.value;
+                this.apiKey = this.apiKeyInput.value;
+                
+                localStorage.setItem('n8n-webhook-url', this.webhookUrl);
+                localStorage.setItem('n8n-api-key', this.apiKey);
+            }
+
+            showStatus(message, type = 'info') {
+                this.statusDiv.textContent = message;
+                this.statusDiv.className = `status-message status-${type}`;
+                
+                setTimeout(() => {
+                    this.statusDiv.textContent = '';
+                    this.statusDiv.className = 'status-message';
+                }, 5000);
+            }
+
+            async testConnection() {
+                this.saveConfig();
+                
+                if (!this.webhookUrl) {
+                    this.showStatus('Please enter a webhook URL', 'error');
+                    return;
+                }
+
+                this.showStatus('Testing connection...', 'info');
+
+                try {
+                    const response = await fetch(this.webhookUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+                        },
+                        body: JSON.stringify({
+                            action: 'test_connection',
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+
+                    if (response.ok) {
+                        this.showStatus('Connection successful!', 'success');
+                    } else {
+                        this.showStatus(`Connection failed: ${response.status}`, 'error');
+                    }
+                } catch (error) {
+                    this.showStatus(`Connection error: ${error.message}`, 'error');
+                }
+            }
+
+            async triggerWorkflow() {
+                this.saveConfig();
+                
+                if (!this.webhookUrl) {
+                    this.showStatus('Please enter a webhook URL', 'error');
+                    return;
+                }
+
+                this.showStatus('Triggering workflow...', 'info');
+
+                try {
+                    const response = await fetch(this.webhookUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+                        },
+                        body: JSON.stringify({
+                            action: 'trigger_workflow',
+                            data: {
+                                source: 'html_interface',
+                                timestamp: new Date().toISOString(),
+                                user_id: 'web_user'
+                            }
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        this.showStatus('Workflow triggered successfully!', 'success');
+                        console.log('Workflow result:', result);
+                    } else {
+                        this.showStatus(`Workflow failed: ${result.message || response.status}`, 'error');
+                    }
+                } catch (error) {
+                    this.showStatus(`Workflow error: ${error.message}`, 'error');
+                }
+            }
+
+            async sendMessage() {
+                const message = this.chatInput.value.trim();
+                if (!message) return;
+
+                if (!this.webhookUrl) {
+                    this.addMessage('Please configure N8N webhook URL first', 'system');
+                    return;
+                }
+
+                // Add user message to chat
+                this.addMessage(message, 'user');
+                this.chatInput.value = '';
+
+                try {
+                    const response = await fetch(this.webhookUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+                        },
+                        body: JSON.stringify({
+                            action: 'chat_message',
+                            message: message,
+                            user_id: 'web_user',
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (response.ok && result.response) {
+                        this.addMessage(result.response, 'ai');
+                    } else {
+                        this.addMessage('Sorry, I couldn\'t process your message. Please try again.', 'ai');
+                    }
+                } catch (error) {
+                    this.addMessage(`Error: ${error.message}`, 'system');
+                }
+            }
+
+            addMessage(text, type) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+                messageDiv.textContent = text;
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+
+            async uploadFile() {
+                const file = this.fileInput.files[0];
+                if (!file) {
+                    this.showUploadStatus('Please select a file', 'error');
+                    return;
+                }
+
+                if (!this.webhookUrl) {
+                    this.showUploadStatus('Please configure N8N webhook URL first', 'error');
+                    return;
+                }
+
+                this.showUploadStatus('Uploading file...', 'info');
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('action', 'file_upload');
+                formData.append('timestamp', new Date().toISOString());
+
+                try {
+                    const response = await fetch(this.webhookUrl, {
+                        method: 'POST',
+                        headers: {
+                            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+                        },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        this.showUploadStatus('File uploaded and processed successfully!', 'success');
+                        this.fileInput.value = '';
+                        
+                        if (result.message) {
+                            this.addMessage(`File processed: ${result.message}`, 'system');
+                        }
+                    } else {
+                        this.showUploadStatus(`Upload failed: ${result.message || response.status}`, 'error');
+                    }
+                } catch (error) {
+                    this.showUploadStatus(`Upload error: ${error.message}`, 'error');
+                }
+            }
+
+            showUploadStatus(message, type = 'info') {
+                this.uploadStatus.textContent = message;
+                this.uploadStatus.className = `upload-status status-${type}`;
+                
+                setTimeout(() => {
+                    this.uploadStatus.textContent = '';
+                    this.uploadStatus.className = 'upload-status';
+                }, 5000);
+            }
+        }
+
+        // Initialize the N8N integration when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new N8NIntegration();
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Document Processing Workflow</h1>
+        
+        <!-- First Row: Trigger -->
+        <div class="workflow-row">
+            <div class="node trigger-node">
+                <span class="node-icon">💬</span>
+                <div class="node-title">AI Agent</div>
+                <div class="node-subtitle">Chat Message Received</div>
+            </div>
+        </div>
+
+        <!-- Memory Section -->
+        <div class="memory-section">
+            <div class="node memory-node">
+                <span class="node-icon">🧠</span>
+                <div class="node-title">Postgres Chat</div>
+                <div class="node-subtitle">Memory</div>
+            </div>
+            <div class="node memory-node">
+                <span class="node-icon">🔍</span>
+                <div class="node-title">Google Gemini</div>
+                <div class="node-subtitle">Chat Model</div>
+            </div>
+        </div>
+
+        <div class="workflow-row">
+            <span class="arrow">⬇️</span>
+        </div>
+
+        <!-- Second Row: Form and Processing -->
+        <div class="workflow-row">
+            <div class="node action-node">
+                <span class="node-icon">📝</span>
+                <div class="node-title">Form Submission</div>
+                <div class="node-subtitle">Trigger</div>
+            </div>
+            <span class="arrow">➡️</span>
+            <div class="node action-node">
+                <span class="node-icon">📤</span>
+                <div class="node-title">Upload File</div>
+                <div class="node-subtitle">Google Drive</div>
+            </div>
+            <span class="arrow">➡️</span>
+            <div class="node process-node">
+                <span class="node-icon">✏️</span>
+                <div class="node-title">Edit Fields</div>
+                <div class="node-subtitle">Manual Processing</div>
+            </div>
+            <span class="arrow">➡️</span>
+            <div class="node action-node">
+                <span class="node-icon">📥</span>
+                <div class="node-title">Download File</div>
+                <div class="node-subtitle">Google Drive</div>
+            </div>
+        </div>
+
+        <div class="workflow-row">
+            <span class="arrow">⬇️</span>
+        </div>
+
+        <!-- Third Row: Processing Split -->
+        <div class="workflow-row">
+            <div class="node process-node">
+                <span class="node-icon">🔄</span>
+                <div class="node-title">Switch</div>
+                <div class="node-subtitle">Route Rules</div>
+            </div>
+        </div>
+
+        <div class="workflow-row">
+            <span class="arrow">⬇️</span>
+        </div>
+
+        <!-- Fourth Row: Document Processing Branch -->
+        <div class="branch-container">
+            <div class="branch-split">
+                <div class="node branch-node process-node">
+                    <span class="node-icon">📄</span>
+                    <div class="node-title">Extract from File</div>
+                    <div class="node-subtitle">PDF Processing</div>
+                </div>
+                <div class="node branch-node process-node">
+                    <span class="node-icon">📋</span>
+                    <div class="node-title">Extract from Doc</div>
+                    <div class="node-subtitle">Text Extraction</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="workflow-row">
+            <span class="arrow">⬇️</span>
+        </div>
+
+        <!-- Fifth Row: AI Processing -->
+        <div class="workflow-row">
+            <div class="node ai-node">
+                <span class="node-icon">🤖</span>
+                <div class="node-title">Google Gemini</div>
+                <div class="node-subtitle">Embeddings</div>
+            </div>
+            <span class="arrow">➡️</span>
+            <div class="node process-node">
+                <span class="node-icon">✂️</span>
+                <div class="node-title">Text Splitter</div>
+                <div class="node-subtitle">Character Text</div>
+            </div>
+        </div>
+
+        <div class="workflow-row">
+            <span class="arrow">⬇️</span>
+        </div>
+
+        <!-- Sixth Row: Storage -->
+        <div class="workflow-row">
+            <div class="node storage-node">
+                <span class="node-icon">🗄️</span>
+                <div class="node-title">Supabase Vector Store</div>
+                <div class="node-subtitle">Document Storage</div>
+                <div class="integration-badge">DB</div>
+            </div>
+            <span class="arrow">➡️</span>
+            <div class="node storage-node">
+                <span class="node-icon">📊</span>
+                <div class="node-title">Default Data Loader</div>
+                <div class="node-subtitle">Final Processing</div>
+            </div>
+        </div>
+
+        <!-- Embeddings Connection -->
+        <div class="workflow-row">
+            <div class="node ai-node">
+                <span class="node-icon">🔗</span>
+                <div class="node-title">Google Gemini</div>
+                <div class="node-subtitle">Embeddings</div>
+            </div>
+        </div>
+
+        <!-- N8N Integration Panel -->
+        <div class="integration-panel">
+            <h2>🔗 N8N Workflow Integration</h2>
+            
+            <div class="config-section">
+                <label for="n8n-webhook-url">N8N Webhook URL:</label>
+                <input type="url" id="n8n-webhook-url" placeholder="http://localhost:5678/form-test/d28d8cb7-d181-45fc-ad95-4564abaad675" />
+            </div>
+            
+            <div class="config-section">
+                <label for="n8n-api-key">N8N API Key (Optional):</label>
+                <input type="password" id="n8n-api-key" placeholder="Your N8N API Key" />
+            </div>
+            
+            <div class="test-section">
+                <button id="test-connection" class="test-btn">Test Connection</button>
+                <button id="trigger-workflow" class="trigger-btn">Trigger Workflow</button>
+                <div id="status-message" class="status-message"></div>
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="chat-interface">
+            <h2>💬 Chat with AI Agent</h2>
+            <div class="chat-container">
+                <div id="chat-messages" class="chat-messages"></div>
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" placeholder="Type your message..." />
+                    <button id="send-message" class="send-btn">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Upload Interface -->
+        <div class="file-upload-section">
+            <h2>📁 Upload Document</h2>
+            <div class="upload-container">
+                <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt" />
+                <button id="upload-file" class="upload-btn">Upload & Process</button>
+                <div id="upload-status" class="upload-status"></div>
+            </div>
+        </div>
+
+        <div class="description">
+            <h2>🎯 Workflow Overview</h2>
+            <p><strong>Purpose:</strong> This intelligent document processing workflow combines AI agents, cloud storage, and vector databases to create a comprehensive document management and chat system.</p>
+            
+            <p><strong>Key Features:</strong></p>
+            <p>• AI-powered chat interface with persistent memory using PostgreSQL</p>
+            <p>• Automated document upload and processing through Google Drive integration</p>
+            <p>• Smart document content extraction from PDFs and text files</p>
+            <p>• Advanced text embedding using Google Gemini for semantic understanding</p>
+            <p>• Vector storage in Supabase for efficient similarity search and retrieval</p>
+            <p>• Flexible routing system to handle different document types and processing paths</p>
+
+            <p><strong>Workflow Flow:</strong> Chat messages trigger the AI agent → Documents are uploaded to Drive → Content is extracted and processed → Text is embedded using Gemini → Vectors are stored in Supabase for future retrieval and chat context.</p>
+        </div>
+    </div>
+</body>
+</html>
