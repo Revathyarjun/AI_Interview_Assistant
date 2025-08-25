@@ -1,302 +1,175 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Mock Interview | Upload Your Resume</title>
-  <meta name="description" content="Upload your resume and practice with an AI mock interview agent powered by n8n, Gemini, and Supabase." />
-  <meta property="og:title" content="AI Mock Interview" />
-  <meta property="og:description" content="Upload your resume and practice with an AI mock interview agent." />
-  <meta property="og:type" content="website" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23ffffff' d='M16 3l9 5v10l-9 5-9-5V8l9-5z'/%3E%3C/svg%3E">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Mock Interview</title>
   <style>
-    :root{
-      --bg: #0b1020;
-      --card: rgba(255,255,255,0.06);
-      --card-strong: rgba(255,255,255,0.12);
-      --text: #e9eefb;
-      --muted: #b8c2e0;
-      --accent: #7c9cff;
-      --accent-2: #4ee3d6;
-      --danger: #ff7a7a;
-      --ok: #3fe38b;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius: 18px;
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
-      color:var(--text);
-      background: radial-gradient(1200px 600px at 10% 10%, #141b35 0%, transparent 60%),
-                  radial-gradient(1200px 600px at 90% 20%, #0a2333 0%, transparent 60%),
-                  radial-gradient(900px 500px at 50% 110%, #0a1d28 0%, transparent 60%),
-                  var(--bg);
-      background-attachment: fixed;
-      line-height: 1.5;
+    header {
+      width: 100%;
+      background: #1f2937;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
     }
-    a{color:var(--accent); text-decoration: none;}
-    .container{max-width:1120px; margin:0 auto; padding:24px}
-    .nav{
-      display:flex; align-items:center; justify-content:space-between; gap:16px;
-      padding:14px 18px; border-radius:calc(var(--radius) - 6px);
-      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
-      backdrop-filter: blur(10px); box-shadow: var(--shadow); border:1px solid rgba(255,255,255,.12);
+    .container {
+      max-width: 800px;
+      width: 100%;
+      margin: 2rem auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      padding: 2rem;
     }
-    .brand{display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:.3px}
-    .brand .logo{
-      width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg, var(--accent), var(--accent-2));
-      display:grid; place-items:center; color:#081225; font-weight:900; box-shadow:0 6px 20px rgba(124,156,255,.45);
+    h2 {
+      text-align: center;
+      margin-bottom: 1rem;
     }
-
-    .hero{
-      display:grid; gap:22px; margin:56px 0 26px;
-      grid-template-columns: 1.15fr .85fr;
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 2rem;
     }
-    @media (max-width: 920px){ .hero{ grid-template-columns: 1fr; } }
-    .card{
-      background: linear-gradient(180deg, var(--card), rgba(255,255,255,0.03));
-      border:1px solid rgba(255,255,255,.12);
-      box-shadow: var(--shadow);
-      border-radius: var(--radius);
+    input[type="file"], input[type="text"] {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
-    .glass{
-      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.03));
-      border:1px solid rgba(255,255,255,.18);
-      backdrop-filter: blur(10px);
+    button {
+      padding: 0.75rem;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
     }
-    .hero-copy{ padding:34px }
-    .title{font-size: clamp(28px, 3.3vw, 46px); line-height:1.1; margin:0 0 8px}
-    .subtitle{color:var(--muted); font-size: clamp(14px, 1.3vw, 18px)}
-    .badges{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
-    .badge{padding:8px 12px; border-radius:999px; font-size:13px; background: rgba(124,156,255,.15); border:1px solid rgba(124,156,255,.35)}
-    .metrics{ display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-top:18px }
-    .metric{ padding:14px; border-radius:14px; background:var(--card-strong); text-align:center}
-    .metric b{font-size:22px}
-    .upload{ padding:22px }
-    .field{ display:grid; gap:6px; margin:12px 0 }
-    label{ color:var(--muted); font-size:14px }
-    input, select, textarea{
-      background: rgba(255,255,255,.06); color:var(--text);
-      border:1px solid rgba(255,255,255,.18); border-radius:12px; padding:12px 14px; font-size:15px;
-      outline: none;
+    button:hover {
+      background: #1d4ed8;
     }
-    input:focus, select:focus, textarea:focus{ border-color: var(--accent); box-shadow: 0 0 0 4px rgba(124,156,255,.18) }
-    .row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px }
-    @media (max-width:720px){ .row{ grid-template-columns: 1fr } }
-    .actions{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:12px }
-    .btn{
-      appearance:none; border:0; padding:12px 16px; border-radius:12px; color:#081225; font-weight:700; cursor:pointer;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 10px 24px rgba(76, 160, 255, .35);
+    .chat-box {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      height: 400px;
+      overflow-y: auto;
+      padding: 1rem;
+      background: #fafafa;
+      margin-bottom: 1rem;
     }
-    .btn.secondary{ background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.25) }
-    .hint{ font-size:12px; color:var(--muted) }
-    .how{ margin:36px 0; padding:24px }
-    .steps{ display:grid; grid-template-columns: repeat(3, 1fr); gap:14px }
-    @media (max-width:920px){ .steps{ grid-template-columns: 1fr } }
-    .step{ padding:18px; border-radius:14px; background:var(--card) }
-    .step h4{ margin:0 0 6px }
-    .footer{ margin:46px 0 20px; text-align:center; color:var(--muted) }
-    .toast{
-      position:fixed; right:18px; bottom:18px; padding:12px 14px; border-radius:12px; background:var(--card-strong);
-      border:1px solid rgba(255,255,255,.2); display:none; gap:10px; align-items:center; box-shadow: var(--shadow)
+    .message {
+      margin: 0.5rem 0;
+      padding: 0.75rem;
+      border-radius: 8px;
+      max-width: 70%;
+      clear: both;
     }
-    .dot{ width:10px; height:10px; border-radius:999px; background:var(--ok) }
-    .toast.error .dot{ background: var(--danger) }
-    .spinner{ width:16px; height:16px; border:3px solid rgba(255,255,255,.25); border-top-color: #fff; border-radius:50%; animation: spin 0.9s linear infinite }
-    @keyframes spin{ to{ transform: rotate(360deg) } }
-    .code-chip{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size:12px; padding:6px 8px; border-radius:10px; background:rgba(255,255,255,.06); border:1px dashed rgba(255,255,255,.18) }
+    .user {
+      background: #2563eb;
+      color: #fff;
+      margin-left: auto;
+      text-align: right;
+    }
+    .bot {
+      background: #e5e7eb;
+      margin-right: auto;
+      text-align: left;
+    }
+    .chat-input {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
+  <header>
+    <h1>🚀 AI Mock Interview Assistant</h1>
+    <p>Upload your resume & practice with an AI interviewer</p>
+  </header>
+
   <div class="container">
-    <!-- NAV -->
-    <div class="nav">
-      <div class="brand">
-        <div class="logo">AI</div>
-        <div>Mock Interview</div>
-      </div>
-      <div class="code-chip">Powered by n8n • Gemini • Supabase</div>
+    <!-- Resume Upload -->
+    <h2>Step 1: Upload Resume</h2>
+    <form id="resumeForm">
+      <input type="file" id="resumeFile" name="resume" accept=".pdf,.doc,.docx" required />
+      <button type="submit">Upload Resume</button>
+    </form>
+
+    <!-- Chat -->
+    <h2>Step 2: Start Interview</h2>
+    <div class="chat-box" id="chatBox"></div>
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Type your answer..." />
+      <button id="sendBtn">Send</button>
     </div>
-
-    <!-- HERO -->
-    <section class="hero">
-      <div class="card hero-copy">
-        <h1 class="title">Ace your next interview with an AI coach</h1>
-        <p class="subtitle">Upload your resume, get tailored questions, and receive feedback on structure, clarity, and impact. Your data stays private and is stored securely.</p>
-        <div class="badges">
-          <span class="badge">Resume-aware Q&A</span>
-          <span class="badge">Real-time feedback</span>
-          <span class="badge">ATS tips</span>
-          <span class="badge">Role-specific drills</span>
-        </div>
-        <div class="metrics">
-          <div class="metric"><b>5 min</b><div class="hint">to first mock</div></div>
-          <div class="metric"><b>+30%</b><div class="hint">confidence boost</div></div>
-          <div class="metric"><b>∞</b><div class="hint">practice sessions</div></div>
-        </div>
-      </div>
-
-      <!-- UPLOAD CARD -->
-      <div class="card upload">
-        <h3 style="margin:6px 0 4px">Start now — upload your resume</h3>
-        <p class="hint">Choose either direct upload to your n8n webhook or open the Google Form.</p>
-
-        <form id="resumeForm">
-          <div class="row">
-            <div class="field">
-              <label for="name">Full name</label>
-              <input id="name" name="name" required placeholder="Revathy Arjun" />
-            </div>
-            <div class="field">
-              <label for="email">Email</label>
-              <input id="email" name="email" type="email" required placeholder="you@example.com" />
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="field">
-              <label for="role">Target role</label>
-              <input id="role" name="role" placeholder="Data Analyst, Fraud Analyst, ..." />
-            </div>
-            <div class="field">
-              <label for="experience">Experience level</label>
-              <select id="experience" name="experience">
-                <option>Entry</option>
-                <option>Intermediate</option>
-                <option>Advanced</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="skills">Key skills (comma separated)</label>
-            <input id="skills" name="skills" placeholder="SQL, Python, Power BI, Tableau" />
-          </div>
-
-          <div class="field">
-            <label for="resume">Resume (PDF/DOCX)</label>
-            <input id="resume" name="resume" type="file" accept=".pdf,.doc,.docx" required />
-          </div>
-
-          <div class="actions">
-            <button class="btn" id="submitBtn" type="submit">
-              <span class="btn-text">Upload to n8n</span>
-              <span class="spinner" style="display:none; margin-left:8px"></span>
-            </button>
-            <button class="btn secondary" id="formBtn" type="button">Open Google Form</button>
-            <span class="hint">By continuing, you agree to the privacy notice below.</span>
-          </div>
-        </form>
-      </div>
-    </section>
-
-    <!-- HOW IT WORKS -->
-    <section class="how card">
-      <h3 style="margin:6px 0 12px; padding-left:2px">How it works</h3>
-      <div class="steps">
-        <div class="step">
-          <h4>1) Upload</h4>
-          <div class="hint">Your resume is parsed, chunked, and embedded with Gemini. We store text + vectors in Supabase.</div>
-        </div>
-        <div class="step">
-          <h4>2) Practice</h4>
-          <div class="hint">The AI Agent generates questions based on your experience and target role.</div>
-        </div>
-        <div class="step">
-          <h4>3) Improve</h4>
-          <div class="hint">Get structured feedback, STAR rewrites, and next-question suggestions.</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PRIVACY -->
-    <section class="card" style="padding:18px">
-      <h4 style="margin:8px 0 6px">Privacy & Data</h4>
-      <p class="hint">
-        Files are processed only to run your mock interviews. Content and embeddings are stored in Supabase and can be deleted upon request.
-      </p>
-    </section>
-
-    <div class="footer">© <span id="year"></span> AI Mock Interview · Built with ❤️ using n8n</div>
-  </div>
-
-  <!-- TOAST -->
-  <div class="toast" id="toast">
-    <div class="dot"></div><div id="toastMsg">Uploaded successfully. We’ll email you a session link shortly.</div>
   </div>
 
   <script>
-    // ======= CONFIG =======
-    // 1) If you're posting to n8n directly, paste your public webhook URL here:
-    //const WEBHOOK_URL = "https://YOUR-N8N-DOMAIN/webhook/your-mock-interview";
-    // 2) If you prefer Google Forms instead, paste the form URL here:
-    const GOOGLE_FORM_URL = "https://revathy0588.app.n8n.cloud/form-test/d28d8cb7-d181-45fc-ad95-4564abaad675";
+    const resumeForm = document.getElementById("resumeForm");
+    const chatBox = document.getElementById("chatBox");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
 
-    // ======= UTILITIES =======
-    const toast = (msg, isError=false) => {
-      const el = document.getElementById('toast');
-      const txt = document.getElementById('toastMsg');
-      txt.textContent = msg;
-      el.classList.toggle('error', !!isError);
-      el.style.display = 'flex';
-      setTimeout(()=> el.style.display='none', 3800);
-    };
+    // Replace with your n8n webhook URL for resume uploads
+    const resumeWebhook = "https://revathy0588.app.n8n.cloud/form-test/d28d8cb7-d181-45fc-ad95-4564abaad675";
+    // Replace with your n8n webhook URL for chat
+    const chatWebhook = "https://revathy0588.app.n8n.cloud/webhook/0105d027-b9bb-4f68-8c22-2f0d76d01821/chat";
 
-    // ======= UI LOGIC =======
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    document.getElementById('formBtn').addEventListener('click', () => {
-      if (!GOOGLE_FORM_URL || GOOGLE_FORM_URL.includes("YOUR_GOOGLE_FORM_ID")) {
-        toast("Add your Google Form link in the code first.", true);
-        return;
-      }
-      window.open(GOOGLE_FORM_URL, "_blank", "noopener");
-    });
-
-    document.getElementById('resumeForm').addEventListener('submit', async (e) => {
+    // Upload Resume
+    resumeForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const submitBtn = document.getElementById('submitBtn');
-      const spinner = submitBtn.querySelector('.spinner');
-      const btnText = submitBtn.querySelector('.btn-text');
-
-      if (!WEBHOOK_URL || WEBHOOK_URL.includes("YOUR-N8N-DOMAIN")) {
-        toast("Add your n8n webhook URL in the code first.", true);
-        return;
-      }
-
-      try{
-        btnText.textContent = "Uploading…";
-        spinner.style.display = 'inline-block';
-        submitBtn.disabled = true;
-
-        const form = e.currentTarget;
-        const fd = new FormData(form);
-
-        // Map to expected n8n fields (adjust names to your workflow)
-        // These become `binary.resume` and JSON fields in the webhook
-        fd.set('source', 'web-landing');
-        fd.set('timestamp', new Date().toISOString());
-
-        const res = await fetch(WEBHOOK_URL, { method: 'POST', body: fd });
-
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || ('HTTP ' + res.status));
-        }
-
-        form.reset();
-        toast("Resume uploaded. Check your email for the mock session link.");
-      } catch(err){
-        console.error(err);
-        toast("Upload failed: " + (err.message || "Unknown error"), true);
-      } finally {
-        spinner.style.display = 'none';
-        btnText.textContent = "Upload to n8n";
-        submitBtn.disabled = false;
-      }
+      const formData = new FormData();
+      formData.append("file", document.getElementById("resumeFile").files[0]);
+      
+      const res = await fetch(resumeWebhook, { method: "POST", body: formData });
+      const data = await res.json();
+      alert("Resume uploaded successfully!");
     });
+
+    // Send chat message
+    async function sendMessage() {
+      const userMsg = chatInput.value;
+      if (!userMsg) return;
+      
+      appendMessage("user", userMsg);
+      chatInput.value = "";
+
+      const res = await fetch(chatWebhook, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMsg })
+      });
+      const data = await res.json();
+      appendMessage("bot", data.reply || "No response");
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    chatInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    // Append message to chat
+    function appendMessage(sender, text) {
+      const msg = document.createElement("div");
+      msg.classList.add("message", sender);
+      msg.innerText = text;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
   </script>
 </body>
 </html>
