@@ -1,880 +1,302 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N8N AI Document Processing Workflow</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: linear-gradient(135deg, #E6E6FA 0%, #DDA0DD 50%, #D8BFD8 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            padding: 20px;
-            color: white;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 40px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(45deg, #fff, #f0f8ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .workflow {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .node {
-            background: rgba(255, 255, 255, 0.15);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 15px;
-            padding: 20px;
-            min-width: 180px;
-            text-align: center;
-            position: relative;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(5px);
-        }
-
-        .node:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .node-icon {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .node-title {
-            font-weight: bold;
-            font-size: 1.1em;
-            margin-bottom: 5px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-        }
-
-        .node-subtitle {
-            font-size: 0.9em;
-            opacity: 0.9;
-            font-style: italic;
-        }
-
-        .arrow {
-            font-size: 2em;
-            color: rgba(255, 255, 255, 0.8);
-            margin: 0 10px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-        }
-
-        .trigger-node {
-            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
-            border-color: #FF4757;
-        }
-
-        .action-node {
-            background: linear-gradient(135deg, #4ECDC4, #45B7B8);
-            border-color: #26C0BA;
-        }
-
-        .ai-node {
-            background: linear-gradient(135deg, #FFA726, #FF9800);
-            border-color: #F57C00;
-        }
-
-        .storage-node {
-            background: linear-gradient(135deg, #66BB6A, #4CAF50);
-            border-color: #388E3C;
-        }
-
-        .process-node {
-            background: linear-gradient(135deg, #AB47BC, #9C27B0);
-            border-color: #7B1FA2;
-        }
-
-        .branch-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .branch-split {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-
-        .branch-node {
-            flex: 1;
-            min-width: 160px;
-        }
-
-        .memory-section {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            margin: 20px 0;
-        }
-
-        .memory-node {
-            background: linear-gradient(135deg, #5C6BC0, #3F51B5);
-            border-color: #303F9F;
-            flex: 1;
-        }
-
-        .integration-badge {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background: #FF4757;
-            color: white;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8em;
-            font-weight: bold;
-        }
-
-        .workflow-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .description {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 25px;
-            border-radius: 15px;
-            margin-top: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .description h2 {
-            margin-bottom: 15px;
-            color: #fff;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-        }
-
-        .description p {
-            line-height: 1.6;
-            margin-bottom: 10px;
-            opacity: 0.95;
-        }
-
-        .integration-panel {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 25px;
-            border-radius: 15px;
-            margin: 30px 0;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .integration-panel h2 {
-            margin-bottom: 20px;
-            color: #fff;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-        }
-
-        .config-section {
-            margin-bottom: 20px;
-        }
-
-        .config-section label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: white;
-        }
-
-        .config-section input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 14px;
-        }
-
-        .config-section input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .config-section input:focus {
-            outline: none;
-            border-color: #4ECDC4;
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .test-section {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        .test-btn, .trigger-btn, .send-btn, .upload-btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: white;
-        }
-
-        .test-btn {
-            background: linear-gradient(135deg, #4ECDC4, #45B7B8);
-        }
-
-        .trigger-btn {
-            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
-        }
-
-        .send-btn, .upload-btn {
-            background: linear-gradient(135deg, #66BB6A, #4CAF50);
-        }
-
-        .test-btn:hover, .trigger-btn:hover, .send-btn:hover, .upload-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .status-message, .upload-status {
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-            min-height: 20px;
-            font-weight: bold;
-        }
-
-        .status-success {
-            background: linear-gradient(135deg, #66BB6A, #4CAF50);
-            color: white;
-        }
-
-        .status-error {
-            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
-            color: white;
-        }
-
-        .status-info {
-            background: linear-gradient(135deg, #4ECDC4, #45B7B8);
-            color: white;
-        }
-
-        .chat-interface, .file-upload-section {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 25px;
-            border-radius: 15px;
-            margin: 30px 0;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .chat-interface h2, .file-upload-section h2 {
-            margin-bottom: 20px;
-            color: #fff;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-        }
-
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: 400px;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .chat-input-container {
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-input-container input {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 14px;
-        }
-
-        .chat-input-container input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .chat-input-container input:focus {
-            outline: none;
-            border-color: #4ECDC4;
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .upload-container {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .upload-container input[type="file"] {
-            flex: 1;
-            min-width: 200px;
-            padding: 12px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            padding: 10px 15px;
-            border-radius: 8px;
-            max-width: 80%;
-        }
-
-        .message.user {
-            background: linear-gradient(135deg, #4ECDC4, #45B7B8);
-            margin-left: auto;
-            text-align: right;
-        }
-
-        .message.ai {
-            background: linear-gradient(135deg, #AB47BC, #9C27B0);
-            margin-right: auto;
-        }
-
-        .message.system {
-            background: linear-gradient(135deg, #FFA726, #FF9800);
-            margin: 0 auto;
-            text-align: center;
-        }
-        @media (max-width: 768px) {
-            .workflow-row {
-                flex-direction: column;
-            }
-            
-            .branch-split {
-                flex-direction: column;
-            }
-            
-            .memory-section {
-                flex-direction: column;
-            }
-            
-            .arrow {
-                transform: rotate(90deg);
-                margin: 10px 0;
-            }
-
-            .test-section {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .upload-container {
-                flex-direction: column;
-            }
-        }
-    </style>
-    <script>
-        // N8N Integration JavaScript
-        class N8NIntegration {
-            constructor() {
-                this.webhookUrl = '';
-                this.apiKey = '';
-                this.init();
-            }
-
-            init() {
-                // Get DOM elements
-                this.webhookInput = document.getElementById('n8n-webhook-url');
-                this.apiKeyInput = document.getElementById('n8n-api-key');
-                this.testBtn = document.getElementById('test-connection');
-                this.triggerBtn = document.getElementById('trigger-workflow');
-                this.statusDiv = document.getElementById('status-message');
-                this.chatInput = document.getElementById('chat-input');
-                this.sendBtn = document.getElementById('send-message');
-                this.chatMessages = document.getElementById('chat-messages');
-                this.fileInput = document.getElementById('file-input');
-                this.uploadBtn = document.getElementById('upload-file');
-                this.uploadStatus = document.getElementById('upload-status');
-
-                // Bind events
-                this.testBtn.addEventListener('click', () => this.testConnection());
-                this.triggerBtn.addEventListener('click', () => this.triggerWorkflow());
-                this.sendBtn.addEventListener('click', () => this.sendMessage());
-                this.uploadBtn.addEventListener('click', () => this.uploadFile());
-                
-                this.chatInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') this.sendMessage();
-                });
-
-                // Load saved configuration
-                this.loadConfig();
-            }
-
-            loadConfig() {
-                const savedWebhook = localStorage.getItem('n8n-webhook-url');
-                const savedApiKey = localStorage.getItem('n8n-api-key');
-                
-                if (savedWebhook) {
-                    this.webhookInput.value = savedWebhook;
-                    this.webhookUrl = savedWebhook;
-                }
-                
-                if (savedApiKey) {
-                    this.apiKeyInput.value = savedApiKey;
-                    this.apiKey = savedApiKey;
-                }
-            }
-
-            saveConfig() {
-                this.webhookUrl = this.webhookInput.value;
-                this.apiKey = this.apiKeyInput.value;
-                
-                localStorage.setItem('n8n-webhook-url', this.webhookUrl);
-                localStorage.setItem('n8n-api-key', this.apiKey);
-            }
-
-            showStatus(message, type = 'info') {
-                this.statusDiv.textContent = message;
-                this.statusDiv.className = `status-message status-${type}`;
-                
-                setTimeout(() => {
-                    this.statusDiv.textContent = '';
-                    this.statusDiv.className = 'status-message';
-                }, 5000);
-            }
-
-            async testConnection() {
-                this.saveConfig();
-                
-                if (!this.webhookUrl) {
-                    this.showStatus('Please enter a webhook URL', 'error');
-                    return;
-                }
-
-                this.showStatus('Testing connection...', 'info');
-
-                try {
-                    const response = await fetch(this.webhookUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
-                        },
-                        body: JSON.stringify({
-                            action: 'test_connection',
-                            timestamp: new Date().toISOString()
-                        })
-                    });
-
-                    if (response.ok) {
-                        this.showStatus('Connection successful!', 'success');
-                    } else {
-                        this.showStatus(`Connection failed: ${response.status}`, 'error');
-                    }
-                } catch (error) {
-                    this.showStatus(`Connection error: ${error.message}`, 'error');
-                }
-            }
-
-            async triggerWorkflow() {
-                this.saveConfig();
-                
-                if (!this.webhookUrl) {
-                    this.showStatus('Please enter a webhook URL', 'error');
-                    return;
-                }
-
-                this.showStatus('Triggering workflow...', 'info');
-
-                try {
-                    const response = await fetch(this.webhookUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
-                        },
-                        body: JSON.stringify({
-                            action: 'trigger_workflow',
-                            data: {
-                                source: 'html_interface',
-                                timestamp: new Date().toISOString(),
-                                user_id: 'web_user'
-                            }
-                        })
-                    });
-
-                    const result = await response.json();
-                    
-                    if (response.ok) {
-                        this.showStatus('Workflow triggered successfully!', 'success');
-                        console.log('Workflow result:', result);
-                    } else {
-                        this.showStatus(`Workflow failed: ${result.message || response.status}`, 'error');
-                    }
-                } catch (error) {
-                    this.showStatus(`Workflow error: ${error.message}`, 'error');
-                }
-            }
-
-            async sendMessage() {
-                const message = this.chatInput.value.trim();
-                if (!message) return;
-
-                if (!this.webhookUrl) {
-                    this.addMessage('Please configure N8N webhook URL first', 'system');
-                    return;
-                }
-
-                // Add user message to chat
-                this.addMessage(message, 'user');
-                this.chatInput.value = '';
-
-                try {
-                    const response = await fetch(this.webhookUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
-                        },
-                        body: JSON.stringify({
-                            action: 'chat_message',
-                            message: message,
-                            user_id: 'web_user',
-                            timestamp: new Date().toISOString()
-                        })
-                    });
-
-                    const result = await response.json();
-                    
-                    if (response.ok && result.response) {
-                        this.addMessage(result.response, 'ai');
-                    } else {
-                        this.addMessage('Sorry, I couldn\'t process your message. Please try again.', 'ai');
-                    }
-                } catch (error) {
-                    this.addMessage(`Error: ${error.message}`, 'system');
-                }
-            }
-
-            addMessage(text, type) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${type}`;
-                messageDiv.textContent = text;
-                
-                this.chatMessages.appendChild(messageDiv);
-                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
-            }
-
-            async uploadFile() {
-                const file = this.fileInput.files[0];
-                if (!file) {
-                    this.showUploadStatus('Please select a file', 'error');
-                    return;
-                }
-
-                if (!this.webhookUrl) {
-                    this.showUploadStatus('Please configure N8N webhook URL first', 'error');
-                    return;
-                }
-
-                this.showUploadStatus('Uploading file...', 'info');
-
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('action', 'file_upload');
-                formData.append('timestamp', new Date().toISOString());
-
-                try {
-                    const response = await fetch(this.webhookUrl, {
-                        method: 'POST',
-                        headers: {
-                            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
-                        },
-                        body: formData
-                    });
-
-                    const result = await response.json();
-                    
-                    if (response.ok) {
-                        this.showUploadStatus('File uploaded and processed successfully!', 'success');
-                        this.fileInput.value = '';
-                        
-                        if (result.message) {
-                            this.addMessage(`File processed: ${result.message}`, 'system');
-                        }
-                    } else {
-                        this.showUploadStatus(`Upload failed: ${result.message || response.status}`, 'error');
-                    }
-                } catch (error) {
-                    this.showUploadStatus(`Upload error: ${error.message}`, 'error');
-                }
-            }
-
-            showUploadStatus(message, type = 'info') {
-                this.uploadStatus.textContent = message;
-                this.uploadStatus.className = `upload-status status-${type}`;
-                
-                setTimeout(() => {
-                    this.uploadStatus.textContent = '';
-                    this.uploadStatus.className = 'upload-status';
-                }, 5000);
-            }
-        }
-
-        // Initialize the N8N integration when the page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            new N8NIntegration();
-        });
-    </script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Mock Interview | Upload Your Resume</title>
+  <meta name="description" content="Upload your resume and practice with an AI mock interview agent powered by n8n, Gemini, and Supabase." />
+  <meta property="og:title" content="AI Mock Interview" />
+  <meta property="og:description" content="Upload your resume and practice with an AI mock interview agent." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23ffffff' d='M16 3l9 5v10l-9 5-9-5V8l9-5z'/%3E%3C/svg%3E">
+  <style>
+    :root{
+      --bg: #0b1020;
+      --card: rgba(255,255,255,0.06);
+      --card-strong: rgba(255,255,255,0.12);
+      --text: #e9eefb;
+      --muted: #b8c2e0;
+      --accent: #7c9cff;
+      --accent-2: #4ee3d6;
+      --danger: #ff7a7a;
+      --ok: #3fe38b;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 10% 10%, #141b35 0%, transparent 60%),
+                  radial-gradient(1200px 600px at 90% 20%, #0a2333 0%, transparent 60%),
+                  radial-gradient(900px 500px at 50% 110%, #0a1d28 0%, transparent 60%),
+                  var(--bg);
+      background-attachment: fixed;
+      line-height: 1.5;
+    }
+    a{color:var(--accent); text-decoration: none;}
+    .container{max-width:1120px; margin:0 auto; padding:24px}
+    .nav{
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+      padding:14px 18px; border-radius:calc(var(--radius) - 6px);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+      backdrop-filter: blur(10px); box-shadow: var(--shadow); border:1px solid rgba(255,255,255,.12);
+    }
+    .brand{display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:.3px}
+    .brand .logo{
+      width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg, var(--accent), var(--accent-2));
+      display:grid; place-items:center; color:#081225; font-weight:900; box-shadow:0 6px 20px rgba(124,156,255,.45);
+    }
+
+    .hero{
+      display:grid; gap:22px; margin:56px 0 26px;
+      grid-template-columns: 1.15fr .85fr;
+    }
+    @media (max-width: 920px){ .hero{ grid-template-columns: 1fr; } }
+    .card{
+      background: linear-gradient(180deg, var(--card), rgba(255,255,255,0.03));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+    }
+    .glass{
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(10px);
+    }
+    .hero-copy{ padding:34px }
+    .title{font-size: clamp(28px, 3.3vw, 46px); line-height:1.1; margin:0 0 8px}
+    .subtitle{color:var(--muted); font-size: clamp(14px, 1.3vw, 18px)}
+    .badges{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+    .badge{padding:8px 12px; border-radius:999px; font-size:13px; background: rgba(124,156,255,.15); border:1px solid rgba(124,156,255,.35)}
+    .metrics{ display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-top:18px }
+    .metric{ padding:14px; border-radius:14px; background:var(--card-strong); text-align:center}
+    .metric b{font-size:22px}
+    .upload{ padding:22px }
+    .field{ display:grid; gap:6px; margin:12px 0 }
+    label{ color:var(--muted); font-size:14px }
+    input, select, textarea{
+      background: rgba(255,255,255,.06); color:var(--text);
+      border:1px solid rgba(255,255,255,.18); border-radius:12px; padding:12px 14px; font-size:15px;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus{ border-color: var(--accent); box-shadow: 0 0 0 4px rgba(124,156,255,.18) }
+    .row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px }
+    @media (max-width:720px){ .row{ grid-template-columns: 1fr } }
+    .actions{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:12px }
+    .btn{
+      appearance:none; border:0; padding:12px 16px; border-radius:12px; color:#081225; font-weight:700; cursor:pointer;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 10px 24px rgba(76, 160, 255, .35);
+    }
+    .btn.secondary{ background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.25) }
+    .hint{ font-size:12px; color:var(--muted) }
+    .how{ margin:36px 0; padding:24px }
+    .steps{ display:grid; grid-template-columns: repeat(3, 1fr); gap:14px }
+    @media (max-width:920px){ .steps{ grid-template-columns: 1fr } }
+    .step{ padding:18px; border-radius:14px; background:var(--card) }
+    .step h4{ margin:0 0 6px }
+    .footer{ margin:46px 0 20px; text-align:center; color:var(--muted) }
+    .toast{
+      position:fixed; right:18px; bottom:18px; padding:12px 14px; border-radius:12px; background:var(--card-strong);
+      border:1px solid rgba(255,255,255,.2); display:none; gap:10px; align-items:center; box-shadow: var(--shadow)
+    }
+    .dot{ width:10px; height:10px; border-radius:999px; background:var(--ok) }
+    .toast.error .dot{ background: var(--danger) }
+    .spinner{ width:16px; height:16px; border:3px solid rgba(255,255,255,.25); border-top-color: #fff; border-radius:50%; animation: spin 0.9s linear infinite }
+    @keyframes spin{ to{ transform: rotate(360deg) } }
+    .code-chip{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size:12px; padding:6px 8px; border-radius:10px; background:rgba(255,255,255,.06); border:1px dashed rgba(255,255,255,.18) }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🤖 AI Document Processing Workflow</h1>
-        
-        <!-- First Row: Trigger -->
-        <div class="workflow-row">
-            <div class="node trigger-node">
-                <span class="node-icon">💬</span>
-                <div class="node-title">AI Agent</div>
-                <div class="node-subtitle">Chat Message Received</div>
-            </div>
-        </div>
-
-        <!-- Memory Section -->
-        <div class="memory-section">
-            <div class="node memory-node">
-                <span class="node-icon">🧠</span>
-                <div class="node-title">Postgres Chat</div>
-                <div class="node-subtitle">Memory</div>
-            </div>
-            <div class="node memory-node">
-                <span class="node-icon">🔍</span>
-                <div class="node-title">Google Gemini</div>
-                <div class="node-subtitle">Chat Model</div>
-            </div>
-        </div>
-
-        <div class="workflow-row">
-            <span class="arrow">⬇️</span>
-        </div>
-
-        <!-- Second Row: Form and Processing -->
-        <div class="workflow-row">
-            <div class="node action-node">
-                <span class="node-icon">📝</span>
-                <div class="node-title">Form Submission</div>
-                <div class="node-subtitle">Trigger</div>
-            </div>
-            <span class="arrow">➡️</span>
-            <div class="node action-node">
-                <span class="node-icon">📤</span>
-                <div class="node-title">Upload File</div>
-                <div class="node-subtitle">Google Drive</div>
-            </div>
-            <span class="arrow">➡️</span>
-            <div class="node process-node">
-                <span class="node-icon">✏️</span>
-                <div class="node-title">Edit Fields</div>
-                <div class="node-subtitle">Manual Processing</div>
-            </div>
-            <span class="arrow">➡️</span>
-            <div class="node action-node">
-                <span class="node-icon">📥</span>
-                <div class="node-title">Download File</div>
-                <div class="node-subtitle">Google Drive</div>
-            </div>
-        </div>
-
-        <div class="workflow-row">
-            <span class="arrow">⬇️</span>
-        </div>
-
-        <!-- Third Row: Processing Split -->
-        <div class="workflow-row">
-            <div class="node process-node">
-                <span class="node-icon">🔄</span>
-                <div class="node-title">Switch</div>
-                <div class="node-subtitle">Route Rules</div>
-            </div>
-        </div>
-
-        <div class="workflow-row">
-            <span class="arrow">⬇️</span>
-        </div>
-
-        <!-- Fourth Row: Document Processing Branch -->
-        <div class="branch-container">
-            <div class="branch-split">
-                <div class="node branch-node process-node">
-                    <span class="node-icon">📄</span>
-                    <div class="node-title">Extract from File</div>
-                    <div class="node-subtitle">PDF Processing</div>
-                </div>
-                <div class="node branch-node process-node">
-                    <span class="node-icon">📋</span>
-                    <div class="node-title">Extract from Doc</div>
-                    <div class="node-subtitle">Text Extraction</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="workflow-row">
-            <span class="arrow">⬇️</span>
-        </div>
-
-        <!-- Fifth Row: AI Processing -->
-        <div class="workflow-row">
-            <div class="node ai-node">
-                <span class="node-icon">🤖</span>
-                <div class="node-title">Google Gemini</div>
-                <div class="node-subtitle">Embeddings</div>
-            </div>
-            <span class="arrow">➡️</span>
-            <div class="node process-node">
-                <span class="node-icon">✂️</span>
-                <div class="node-title">Text Splitter</div>
-                <div class="node-subtitle">Character Text</div>
-            </div>
-        </div>
-
-        <div class="workflow-row">
-            <span class="arrow">⬇️</span>
-        </div>
-
-        <!-- Sixth Row: Storage -->
-        <div class="workflow-row">
-            <div class="node storage-node">
-                <span class="node-icon">🗄️</span>
-                <div class="node-title">Supabase Vector Store</div>
-                <div class="node-subtitle">Document Storage</div>
-                <div class="integration-badge">DB</div>
-            </div>
-            <span class="arrow">➡️</span>
-            <div class="node storage-node">
-                <span class="node-icon">📊</span>
-                <div class="node-title">Default Data Loader</div>
-                <div class="node-subtitle">Final Processing</div>
-            </div>
-        </div>
-
-        <!-- Embeddings Connection -->
-        <div class="workflow-row">
-            <div class="node ai-node">
-                <span class="node-icon">🔗</span>
-                <div class="node-title">Google Gemini</div>
-                <div class="node-subtitle">Embeddings</div>
-            </div>
-        </div>
-
-        <!-- N8N Integration Panel -->
-        <div class="integration-panel">
-            <h2>🔗 N8N Workflow Integration</h2>
-            
-            <div class="config-section">
-                <label for="n8n-webhook-url">N8N Webhook URL:</label>
-                <input type="url" id="n8n-webhook-url" placeholder="http://localhost:5678/form-test/d28d8cb7-d181-45fc-ad95-4564abaad675" />
-            </div>
-            
-            <div class="config-section">
-                <label for="n8n-api-key">N8N API Key (Optional):</label>
-                <input type="password" id="n8n-api-key" placeholder="Your N8N API Key" />
-            </div>
-            
-            <div class="test-section">
-                <button id="test-connection" class="test-btn">Test Connection</button>
-                <button id="trigger-workflow" class="trigger-btn">Trigger Workflow</button>
-                <div id="status-message" class="status-message"></div>
-            </div>
-        </div>
-
-        <!-- Chat Interface -->
-        <div class="chat-interface">
-            <h2>💬 Chat with AI Agent</h2>
-            <div class="chat-container">
-                <div id="chat-messages" class="chat-messages"></div>
-                <div class="chat-input-container">
-                    <input type="text" id="chat-input" placeholder="Type your message..." />
-                    <button id="send-message" class="send-btn">Send</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- File Upload Interface -->
-        <div class="file-upload-section">
-            <h2>📁 Upload Document</h2>
-            <div class="upload-container">
-                <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt" />
-                <button id="upload-file" class="upload-btn">Upload & Process</button>
-                <div id="upload-status" class="upload-status"></div>
-            </div>
-        </div>
-
-        <div class="description">
-            <h2>🎯 Workflow Overview</h2>
-            <p><strong>Purpose:</strong> This intelligent document processing workflow combines AI agents, cloud storage, and vector databases to create a comprehensive document management and chat system.</p>
-            
-            <p><strong>Key Features:</strong></p>
-            <p>• AI-powered chat interface with persistent memory using PostgreSQL</p>
-            <p>• Automated document upload and processing through Google Drive integration</p>
-            <p>• Smart document content extraction from PDFs and text files</p>
-            <p>• Advanced text embedding using Google Gemini for semantic understanding</p>
-            <p>• Vector storage in Supabase for efficient similarity search and retrieval</p>
-            <p>• Flexible routing system to handle different document types and processing paths</p>
-
-            <p><strong>Workflow Flow:</strong> Chat messages trigger the AI agent → Documents are uploaded to Drive → Content is extracted and processed → Text is embedded using Gemini → Vectors are stored in Supabase for future retrieval and chat context.</p>
-        </div>
+  <div class="container">
+    <!-- NAV -->
+    <div class="nav">
+      <div class="brand">
+        <div class="logo">AI</div>
+        <div>Mock Interview</div>
+      </div>
+      <div class="code-chip">Powered by n8n • Gemini • Supabase</div>
     </div>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="card hero-copy">
+        <h1 class="title">Ace your next interview with an AI coach</h1>
+        <p class="subtitle">Upload your resume, get tailored questions, and receive feedback on structure, clarity, and impact. Your data stays private and is stored securely.</p>
+        <div class="badges">
+          <span class="badge">Resume-aware Q&A</span>
+          <span class="badge">Real-time feedback</span>
+          <span class="badge">ATS tips</span>
+          <span class="badge">Role-specific drills</span>
+        </div>
+        <div class="metrics">
+          <div class="metric"><b>5 min</b><div class="hint">to first mock</div></div>
+          <div class="metric"><b>+30%</b><div class="hint">confidence boost</div></div>
+          <div class="metric"><b>∞</b><div class="hint">practice sessions</div></div>
+        </div>
+      </div>
+
+      <!-- UPLOAD CARD -->
+      <div class="card upload">
+        <h3 style="margin:6px 0 4px">Start now — upload your resume</h3>
+        <p class="hint">Choose either direct upload to your n8n webhook or open the Google Form.</p>
+
+        <form id="resumeForm">
+          <div class="row">
+            <div class="field">
+              <label for="name">Full name</label>
+              <input id="name" name="name" required placeholder="Revathy Arjun" />
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" required placeholder="you@example.com" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="role">Target role</label>
+              <input id="role" name="role" placeholder="Data Analyst, Fraud Analyst, ..." />
+            </div>
+            <div class="field">
+              <label for="experience">Experience level</label>
+              <select id="experience" name="experience">
+                <option>Entry</option>
+                <option>Intermediate</option>
+                <option>Advanced</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="skills">Key skills (comma separated)</label>
+            <input id="skills" name="skills" placeholder="SQL, Python, Power BI, Tableau" />
+          </div>
+
+          <div class="field">
+            <label for="resume">Resume (PDF/DOCX)</label>
+            <input id="resume" name="resume" type="file" accept=".pdf,.doc,.docx" required />
+          </div>
+
+          <div class="actions">
+            <button class="btn" id="submitBtn" type="submit">
+              <span class="btn-text">Upload to n8n</span>
+              <span class="spinner" style="display:none; margin-left:8px"></span>
+            </button>
+            <button class="btn secondary" id="formBtn" type="button">Open Google Form</button>
+            <span class="hint">By continuing, you agree to the privacy notice below.</span>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how card">
+      <h3 style="margin:6px 0 12px; padding-left:2px">How it works</h3>
+      <div class="steps">
+        <div class="step">
+          <h4>1) Upload</h4>
+          <div class="hint">Your resume is parsed, chunked, and embedded with Gemini. We store text + vectors in Supabase.</div>
+        </div>
+        <div class="step">
+          <h4>2) Practice</h4>
+          <div class="hint">The AI Agent generates questions based on your experience and target role.</div>
+        </div>
+        <div class="step">
+          <h4>3) Improve</h4>
+          <div class="hint">Get structured feedback, STAR rewrites, and next-question suggestions.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRIVACY -->
+    <section class="card" style="padding:18px">
+      <h4 style="margin:8px 0 6px">Privacy & Data</h4>
+      <p class="hint">
+        Files are processed only to run your mock interviews. Content and embeddings are stored in Supabase and can be deleted upon request.
+      </p>
+    </section>
+
+    <div class="footer">© <span id="year"></span> AI Mock Interview · Built with ❤️ using n8n</div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <div class="dot"></div><div id="toastMsg">Uploaded successfully. We’ll email you a session link shortly.</div>
+  </div>
+
+  <script>
+    // ======= CONFIG =======
+    // 1) If you're posting to n8n directly, paste your public webhook URL here:
+    //const WEBHOOK_URL = "https://YOUR-N8N-DOMAIN/webhook/your-mock-interview";
+    // 2) If you prefer Google Forms instead, paste the form URL here:
+    const GOOGLE_FORM_URL = "https://revathy0588.app.n8n.cloud/form-test/d28d8cb7-d181-45fc-ad95-4564abaad675";
+
+    // ======= UTILITIES =======
+    const toast = (msg, isError=false) => {
+      const el = document.getElementById('toast');
+      const txt = document.getElementById('toastMsg');
+      txt.textContent = msg;
+      el.classList.toggle('error', !!isError);
+      el.style.display = 'flex';
+      setTimeout(()=> el.style.display='none', 3800);
+    };
+
+    // ======= UI LOGIC =======
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    document.getElementById('formBtn').addEventListener('click', () => {
+      if (!GOOGLE_FORM_URL || GOOGLE_FORM_URL.includes("YOUR_GOOGLE_FORM_ID")) {
+        toast("Add your Google Form link in the code first.", true);
+        return;
+      }
+      window.open(GOOGLE_FORM_URL, "_blank", "noopener");
+    });
+
+    document.getElementById('resumeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      const spinner = submitBtn.querySelector('.spinner');
+      const btnText = submitBtn.querySelector('.btn-text');
+
+      if (!WEBHOOK_URL || WEBHOOK_URL.includes("YOUR-N8N-DOMAIN")) {
+        toast("Add your n8n webhook URL in the code first.", true);
+        return;
+      }
+
+      try{
+        btnText.textContent = "Uploading…";
+        spinner.style.display = 'inline-block';
+        submitBtn.disabled = true;
+
+        const form = e.currentTarget;
+        const fd = new FormData(form);
+
+        // Map to expected n8n fields (adjust names to your workflow)
+        // These become `binary.resume` and JSON fields in the webhook
+        fd.set('source', 'web-landing');
+        fd.set('timestamp', new Date().toISOString());
+
+        const res = await fetch(WEBHOOK_URL, { method: 'POST', body: fd });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ('HTTP ' + res.status));
+        }
+
+        form.reset();
+        toast("Resume uploaded. Check your email for the mock session link.");
+      } catch(err){
+        console.error(err);
+        toast("Upload failed: " + (err.message || "Unknown error"), true);
+      } finally {
+        spinner.style.display = 'none';
+        btnText.textContent = "Upload to n8n";
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>
