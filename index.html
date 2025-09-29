@@ -710,9 +710,15 @@
 
     <script>
         const API_BASE = 'https://revathyar.app.n8n.cloud/webhook';
-        const UPLOAD_URL = `${API_BASE}/upload-resume`;
-        const CHAT_URL = `${API_BASE}/interview-chat`;
-        const SPEECH_TO_TEXT_URL = `${API_BASE}/speech-to-text`;
+		  const UPLOAD_URL = `${API_BASE}/upload-resume`;
+        const WARMUP_URL = `${API_BASE}/warmup-interview`;
+     const TECHNICAL_URL = `${API_BASE}/technical-interview`;
+const BEHAVIORAL_URL = `${API_BASE}/behavioral-interview`;
+const TECHNO_BEHAVIORAL_URL = `${API_BASE}/techno-behavioral-interview`;
+//const CHAT_URL = `${API_BASE}/interview-chat`;
+        const COMPLETE_URL = `${API_BASE}/complete-interview`;
+
+		const SPEECH_TO_TEXT_URL = `${API_BASE}/speech-to-text`;
         
         let interviewStarted = false;
         let timeRemaining = 900; // 15 minutes for technical interview
